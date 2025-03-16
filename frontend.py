@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor
+import web_scrape, deepseek
 
 class ResultRow(QWidget):
     def __init__(self, link, title, preview, parent=None):
@@ -49,18 +50,17 @@ class ResultRow(QWidget):
         self.setLayout(layout)
         
     def translate_preview(self):
-        # Dummy translation: convert preview text to uppercase
-        translated_text = self.preview.upper()
+        translated_text = deepseek.get_translation(self.preview)
         self.preview_label.setText(translated_text)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("Shamela Fusion")
+        self.setWindowTitle("Shamela Hybrid Query Engine")
         self.resize(800, 600)
         self.results_per_page = 5
         self.current_page = 1
-        self.all_results = []  # will hold all results
+        self.all_results = []
         self.initUI()
     
     def initUI(self):
@@ -115,7 +115,10 @@ class MainWindow(QMainWindow):
         if not search_term:
             return
         
-        # Simulated search results (replace with your actual API call)
+        response = web_scrape.send_search_request(search_term)
+        results = web_scrape.get_results_aggregate(response)
+        
+        # Simulated search results
         self.all_results = [
             {
                 "link": f"https://example.com/{i}",
@@ -124,7 +127,9 @@ class MainWindow(QMainWindow):
             }
             for i in range(1, 16)  # Simulate 15 results
         ]
-        
+
+        self.all_results = results
+
         self.current_page = 1
         self.update_results_page()
     
@@ -140,7 +145,7 @@ class MainWindow(QMainWindow):
         page_results = self.all_results[start_index:end_index]
         
         for result in page_results:
-            row = ResultRow(result["link"], result["title"], result["preview"])
+            row = ResultRow(result[0], result[1], result[2])
             self.results_layout.addWidget(row)
         
         # Update pager label and button states
