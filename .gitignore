@@ -37,3 +37,6 @@ coverage.xml
 .hypothesis/
 .pytest_
 
+# LLM dotfiles
+.codex
+
